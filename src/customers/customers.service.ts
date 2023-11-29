@@ -1,10 +1,14 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from 'src/database/prismaService';
 import { Customer } from './interfaces/customersInterace';
+import { PasswordService } from './password.service';
 
 @Injectable()
 export class CustomersService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private passwordService: PasswordService,
+  ) {}
 
   async create(data: Customer): Promise<Customer> {
     try {
@@ -13,6 +17,10 @@ export class CustomersService {
       if (customerExists) {
         throw new Error('customer already exists');
       }
+
+      const hasPassword = await this.passwordService.hasPassword(data.password);
+
+      data.password = hasPassword;
 
       const customer = await this.prisma.customer.create({
         data,
@@ -35,18 +43,4 @@ export class CustomersService {
 
     return customer;
   }
-
-  //   private validInput(data: Customer): void {
-  //     const requiredFields: (keyof Customer)[] = ['name', 'email', 'password'];
-
-  //     for (const field of requiredFields) {
-  //       if (!data[field]) {
-  //         throw new Error(`${field} is required`);
-  //       }
-  //     }
-
-  //     if (data.password.length < 6) {
-  //       throw new Error('password must be at least 6 characters');
-  //     }
-  //   }
 }
