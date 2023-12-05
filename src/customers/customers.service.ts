@@ -15,6 +15,10 @@ export class CustomersService {
   ) {}
 
   async create(data: CustomerCreate): Promise<CustomerProtectedPassword> {
+
+    data.email = data.email.toLowerCase()
+    data.email = data.name.toLowerCase()
+
     const customerExists = await this.findByEmail(data.email);
 
     if (customerExists) {
@@ -39,13 +43,25 @@ export class CustomersService {
   }
 
   async findByEmail(email: string): Promise<Customer> {
-    const customer = await this.prisma.customer.findFirst({
+
+    try{ 
+
+      if(!email){
+        throw new Error("Necessário informar o email")
+      }
+
+      email = email.toLowerCase()
+    
+      const customer = await this.prisma.customer.findFirst({
       where: {
         email,
       },
     });
 
-    return customer;
+    return customer;}catch(err){
+
+      throw new Error("Falha ao tentar encontrar usuario")
+    }
   }
 
 

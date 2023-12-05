@@ -15,6 +15,9 @@ export class AuthService {
   ) {}
 
   async login(data: CustomerLogin): Promise<ResponseLogin> {
+
+    data.email = data.email.toLowerCase()
+
     const customer = await this.customerService.findByEmail(data.email);
 
     if (!customer) {
