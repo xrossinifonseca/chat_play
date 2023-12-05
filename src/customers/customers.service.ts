@@ -17,7 +17,8 @@ export class CustomersService {
   async create(data: CustomerCreate): Promise<CustomerProtectedPassword> {
 
     data.email = data.email.toLowerCase()
-    data.email = data.name.toLowerCase()
+    data.name = data.name.toLowerCase()
+
 
     const customerExists = await this.findByEmail(data.email);
 
