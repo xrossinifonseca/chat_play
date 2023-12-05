@@ -1,6 +1,10 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/database/prismaService';
-import { Customer } from './interfaces/customersInterace';
+import {
+  Customer,
+  CustomerCreate,
+  CustomerProtectedPassword,
+} from './interfaces/customersInterace';
 import { PasswordService } from './password.service';
 
 @Injectable()
@@ -10,28 +14,28 @@ export class CustomersService {
     private passwordService: PasswordService,
   ) {}
 
-  async create(data: Customer): Promise<Customer> {
-    try {
-      const customerExists = await this.findByEmail(data.email);
+  async create(data: CustomerCreate): Promise<CustomerProtectedPassword> {
+    const customerExists = await this.findByEmail(data.email);
 
-      if (customerExists) {
-        throw new Error('customer already exists');
-      }
-
-      const hasPassword = await this.passwordService.hasPassword(data.password);
-
-      data.password = hasPassword;
-
-      const customer = await this.prisma.customer.create({
-        data,
-      });
-
-      return customer;
-    } catch (error) {
-      console.error(error);
-
-      throw new BadRequestException('Failed to create customer');
+    if (customerExists) {
+      throw new Error('usuário ja cadastrado.');
     }
+
+    const hasPassword = await this.passwordService.hasPassword(data.password);
+
+    data.password = hasPassword;
+
+    const customer = await this.prisma.customer.create({
+      data,
+    });
+
+    const protectedPassword = {
+      id: customer.id,
+      name: customer.name,
+      email: customer.email,
+    };
+
+    return protectedPassword;
   }
 
   async findByEmail(email: string): Promise<Customer> {
@@ -43,4 +47,6 @@ export class CustomersService {
 
     return customer;
   }
+
+
 }
