@@ -7,7 +7,7 @@ const urlOrigin = process.env.FRONT_URL
 
 @WebSocketGateway({
   cors: {
-    origin: urlOrigin,
+    origin:'*'
   },
 })
 @Injectable()
