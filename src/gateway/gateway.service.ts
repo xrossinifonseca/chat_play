@@ -3,9 +3,11 @@ import { WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { Server } from 'socket.io';
 import { AuthService } from 'src/auth/auth.service';
 
+const urlOrigin = process.env.FRONT_URL
+
 @WebSocketGateway({
   cors: {
-    origin: '*',
+    origin: urlOrigin,
   },
 })
 @Injectable()
