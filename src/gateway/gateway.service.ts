@@ -3,11 +3,11 @@ import { WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { Server } from 'socket.io';
 import { AuthService } from 'src/auth/auth.service';
 
-const urlOrigin = process.env.FRONT_URL
+const urlOrigin = process.env.FRONT_URL;
 
 @WebSocketGateway({
   cors: {
-    origin:'*'
+    origin: urlOrigin,
   },
 })
 @Injectable()
@@ -28,6 +28,7 @@ export class GatewayService implements OnModuleInit {
       const decodedToken = this.authService.decodeToken(token);
 
       socket.handshake.auth.customerId = decodedToken.id;
+      socket.handshake.auth.customerName = decodedToken.name;
 
       next();
     });
@@ -35,28 +36,26 @@ export class GatewayService implements OnModuleInit {
     this.server.on('connection', (socket) => {
       const customers = [];
 
-      const token = socket.handshake.auth.token;
-
+      // check users online
       for (const [id, socket] of this.server.of('/').sockets) {
-        if (!token) return;
+        const { customerId, customerName } = socket.handshake.auth;
 
-        const decodedToken = this.authService.decodeToken(
-          socket.handshake.auth.token,
-        );
+        if (!customerId) return;
 
         const findCustumer = customers.find(
-          (item) => item?.customerId === decodedToken.id,
+          (item) => item?.customerId === customerId,
         );
 
         if (!findCustumer) {
           customers.push({
             socketId: id,
-            customerId: decodedToken.id,
-            customerName: decodedToken.name,
+            customerId: customerId,
+            customerName: customerName,
           });
         }
       }
 
+      // send the client the users online
       this.server.emit('customersOnline', customers);
 
       socket.on('disconnect', () => {
